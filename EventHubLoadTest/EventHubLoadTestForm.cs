@@ -39,7 +39,7 @@ namespace EventHubLoadTest
                 lblStatus.Text = "connecting Event Hub...";
                 _client = EventHubClient.CreateFromConnectionString(Properties.Settings.Default.EventHubConnectionString);
                 lblStatus.Text = "Event Hub connected";
-                lblParallelism.Text = tbPrallelism.Value.ToString();
+                txtParallelism.Text = tbPrallelism.Value.ToString();
             }
             catch (Exception ex)
             {
@@ -101,17 +101,20 @@ namespace EventHubLoadTest
                     }
 
                     double targetRPS = double.Parse(txtTargetRPS.Text);
-                    if (rps <  targetRPS * .95 && rps >= _highestRPS)
+                    if (cbAutomatic.Checked)
                     {
-                        //tbPrallelism.Value = (int)((targetRPS / rps) * tbPrallelism.Value);
-                        tbPrallelism.Value++;
-                        UpdateLabel(lblParallelism,tbPrallelism.Value.ToString());
-                    }
-                    else if (rps > targetRPS * 1.05)
-                    {
-                        //tbPrallelism.Value = (int)((targetRPS / rps) * tbPrallelism.Value);
-                        tbPrallelism.Value--;
-                        UpdateLabel(lblParallelism,tbPrallelism.Value.ToString());
+                        if (rps < targetRPS * .95)
+                        {
+                            //tbPrallelism.Value = (int)((targetRPS / rps) * tbPrallelism.Value);
+                            tbPrallelism.Value++;
+                            UpdateTextbox(txtParallelism, tbPrallelism.Value.ToString());
+                        }
+                        else if (rps > targetRPS * 1.05)
+                        {
+                            //tbPrallelism.Value = (int)((targetRPS / rps) * tbPrallelism.Value);
+                            tbPrallelism.Value--;
+                            UpdateTextbox(txtParallelism, tbPrallelism.Value.ToString());
+                        }
                     }
                     sample = 0;
                 }
@@ -160,9 +163,15 @@ namespace EventHubLoadTest
             label.Invoke(new Action(() => label.Text = text));
         }
 
+        private void UpdateTextbox(TextBoxBase textBox, string text)
+        {
+            textBox.Invoke(new Action(() => textBox.Text = text));
+        }
+
         private async Task SendAsync()
         {
             EventData data = GenerateData();
+            _client.RetryPolicy = new NoRetry();
             //_client.RetryPolicy = new RetryExponential(
             //            TimeSpan.Zero,
             //            TimeSpan.FromSeconds(30),
@@ -204,7 +213,7 @@ namespace EventHubLoadTest
 
         private void tbPrallelism_Scroll(object sender, EventArgs e)
         {
-            lblParallelism.Text = tbPrallelism.Value.ToString();
+            txtParallelism.Text = tbPrallelism.Value.ToString();
         }
 
         private void btnLoadData_Click(object sender, EventArgs e)
@@ -212,6 +221,20 @@ namespace EventHubLoadTest
             openFileDialog.ShowDialog();
             _data = File.ReadAllLines(openFileDialog.FileName);
             btnStart.Enabled = true;
+        }
+
+        private void txtParallelism_TextChanged(object sender, EventArgs e)
+        {
+            int parallelism = int.Parse(txtParallelism.Text);
+            if (parallelism >= tbPrallelism.Maximum)
+            {
+                tbPrallelism.Maximum = parallelism + 1;
+            }
+            else if (parallelism < 100)
+            {
+                tbPrallelism.Maximum = 100;
+            }
+            tbPrallelism.Value = parallelism;
         }
     }
 }

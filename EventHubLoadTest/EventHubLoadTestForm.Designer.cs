@@ -38,7 +38,6 @@
             this.label3 = new System.Windows.Forms.Label();
             this.tbPrallelism = new System.Windows.Forms.TrackBar();
             this.label2 = new System.Windows.Forms.Label();
-            this.lblParallelism = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.lblMinutesToRun = new System.Windows.Forms.Label();
             this.lblTimeElapsed = new System.Windows.Forms.Label();
@@ -48,6 +47,8 @@
             this.lblSentResults = new System.Windows.Forms.Label();
             this.btnLoadData = new System.Windows.Forms.Button();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.txtParallelism = new System.Windows.Forms.MaskedTextBox();
+            this.cbAutomatic = new System.Windows.Forms.CheckBox();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbPrallelism)).BeginInit();
             this.SuspendLayout();
@@ -97,7 +98,7 @@
             this.lblStatus});
             this.statusStrip1.Location = new System.Drawing.Point(0, 235);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(555, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(587, 22);
             this.statusStrip1.TabIndex = 7;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -125,11 +126,11 @@
             // 
             // tbPrallelism
             // 
-            this.tbPrallelism.Location = new System.Drawing.Point(134, 9);
-            this.tbPrallelism.Maximum = 10000;
+            this.tbPrallelism.Location = new System.Drawing.Point(166, 12);
+            this.tbPrallelism.Maximum = 100;
             this.tbPrallelism.Minimum = 1;
             this.tbPrallelism.Name = "tbPrallelism";
-            this.tbPrallelism.Size = new System.Drawing.Size(401, 45);
+            this.tbPrallelism.Size = new System.Drawing.Size(335, 45);
             this.tbPrallelism.TabIndex = 10;
             this.tbPrallelism.Value = 5;
             this.tbPrallelism.Scroll += new System.EventHandler(this.tbPrallelism_Scroll);
@@ -142,14 +143,6 @@
             this.label2.Size = new System.Drawing.Size(59, 13);
             this.label2.TabIndex = 11;
             this.label2.Text = "Parallelism:";
-            // 
-            // lblParallelism
-            // 
-            this.lblParallelism.AutoSize = true;
-            this.lblParallelism.Location = new System.Drawing.Point(77, 12);
-            this.lblParallelism.Name = "lblParallelism";
-            this.lblParallelism.Size = new System.Drawing.Size(0, 13);
-            this.lblParallelism.TabIndex = 12;
             // 
             // label5
             // 
@@ -226,11 +219,34 @@
             this.btnLoadData.UseVisualStyleBackColor = true;
             this.btnLoadData.Click += new System.EventHandler(this.btnLoadData_Click);
             // 
+            // txtParallelism
+            // 
+            this.txtParallelism.Location = new System.Drawing.Point(105, 12);
+            this.txtParallelism.Mask = "000";
+            this.txtParallelism.Name = "txtParallelism";
+            this.txtParallelism.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.txtParallelism.Size = new System.Drawing.Size(43, 20);
+            this.txtParallelism.TabIndex = 23;
+            this.txtParallelism.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.txtParallelism.TextChanged += new System.EventHandler(this.txtParallelism_TextChanged);
+            // 
+            // cbAutomatic
+            // 
+            this.cbAutomatic.AutoSize = true;
+            this.cbAutomatic.Location = new System.Drawing.Point(508, 14);
+            this.cbAutomatic.Name = "cbAutomatic";
+            this.cbAutomatic.Size = new System.Drawing.Size(72, 17);
+            this.cbAutomatic.TabIndex = 24;
+            this.cbAutomatic.Text = "automatic";
+            this.cbAutomatic.UseVisualStyleBackColor = true;
+            // 
             // EventHubLoadTestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(555, 257);
+            this.ClientSize = new System.Drawing.Size(587, 257);
+            this.Controls.Add(this.cbAutomatic);
+            this.Controls.Add(this.txtParallelism);
             this.Controls.Add(this.btnLoadData);
             this.Controls.Add(this.lblSentResults);
             this.Controls.Add(this.txtTargetRPS);
@@ -239,7 +255,6 @@
             this.Controls.Add(this.lblTimeElapsed);
             this.Controls.Add(this.lblMinutesToRun);
             this.Controls.Add(this.label5);
-            this.Controls.Add(this.lblParallelism);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.tbPrallelism);
             this.Controls.Add(this.lblTotal);
@@ -272,7 +287,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TrackBar tbPrallelism;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label lblParallelism;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label lblMinutesToRun;
         private System.Windows.Forms.Label lblTimeElapsed;
@@ -282,5 +296,7 @@
         private System.Windows.Forms.Label lblSentResults;
         private System.Windows.Forms.Button btnLoadData;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
+        private System.Windows.Forms.MaskedTextBox txtParallelism;
+        private System.Windows.Forms.CheckBox cbAutomatic;
     }
 }
