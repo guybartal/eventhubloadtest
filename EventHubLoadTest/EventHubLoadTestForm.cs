@@ -187,10 +187,10 @@ namespace EventHubLoadTest
             //JsonSerializer jsonSerializer = new Newtonsoft.Json.JsonSerializer();
 
             //EventData data = new EventData(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(info)))
-            EventData data = new EventData(Encoding.UTF8.GetBytes(_data[_random.Next(_data.Length)]))
-            {
-                PartitionKey = _random.Next(5).ToString()
-            };
+            EventData data = new EventData(Encoding.UTF8.GetBytes(_data[_random.Next(_data.Length)]));
+            //{
+            //    PartitionKey = _random.Next(5).ToString()
+            //};
 
             // Set user properties if needed
             data.Properties.Add("Type", "Telemetry_" + DateTime.Now.ToLongTimeString());
