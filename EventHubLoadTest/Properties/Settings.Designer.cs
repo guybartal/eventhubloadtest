@@ -32,5 +32,42 @@ namespace EventHubLoadTest.Properties {
                 return ((string)(this["EventHubConnectionString"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("DefaultEndpointsProtocol=https;AccountName=pocdwsa;AccountKey=3AgbxAfR5NIPqlVp6fF" +
+            "tqGjQQQcKXfBQknSt2MXfr/yGfqvWjasJcc96oLMtmBhXCalcTq5b25Ay1m2m6F2WuQ==")]
+        public string StorageConnectionString {
+            get {
+                return ((string)(this["StorageConnectionString"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("c:\\temp")]
+        public string CachePath {
+            get {
+                return ((string)(this["CachePath"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("dwjsononeday")]
+        public string StorageContainter {
+            get {
+                return ((string)(this["StorageContainter"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2017-01/2017-01-04")]
+        public string StorageDirectory {
+            get {
+                return ((string)(this["StorageDirectory"]));
+            }
+        }
     }
 }

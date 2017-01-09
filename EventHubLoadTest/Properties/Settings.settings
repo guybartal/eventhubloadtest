@@ -5,5 +5,17 @@
     <Setting Name="EventHubConnectionString" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Endpoint=sb://guyehloadtesteu.servicebus.windows.net/;SharedAccessKeyName=send;SharedAccessKey=7GMxwmGfhZBNoPduZA8/kLuEnBEwge1PtsD0Sr/vKvk=;EntityPath=loadtest</Value>
     </Setting>
+    <Setting Name="StorageConnectionString" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DefaultEndpointsProtocol=https;AccountName=pocdwsa;AccountKey=3AgbxAfR5NIPqlVp6fFtqGjQQQcKXfBQknSt2MXfr/yGfqvWjasJcc96oLMtmBhXCalcTq5b25Ay1m2m6F2WuQ==</Value>
+    </Setting>
+    <Setting Name="CachePath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">c:\temp</Value>
+    </Setting>
+    <Setting Name="StorageContainter" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">dwjsononeday</Value>
+    </Setting>
+    <Setting Name="StorageDirectory" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">2017-01/2017-01-04</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
