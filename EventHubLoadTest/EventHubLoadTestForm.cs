@@ -8,6 +8,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -15,9 +16,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
+using Microsoft.Azure; // Namespace for CloudConfigurationManager
+using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
+using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
+using System.Collections.Concurrent;
 
 namespace EventHubLoadTest
 {
+   
+
     public partial class EventHubLoadTestForm : Form
     {
         Random _random = new Random();
@@ -29,6 +36,9 @@ namespace EventHubLoadTest
         Dictionary<string, UInt64> _sentResults;
         string[] _data;
         double _highestRPS;
+        ConcurrentQueue<string> _compressedFiles = new ConcurrentQueue<string>();
+        ConcurrentQueue<string> _deCompressedFiles = new ConcurrentQueue<string>();
+        private bool _downloadStarted;
 
         public EventHubLoadTestForm()
         {
@@ -38,6 +48,8 @@ namespace EventHubLoadTest
             {
                 lblStatus.Text = "connecting Event Hub...";
                 _client = EventHubClient.CreateFromConnectionString(Properties.Settings.Default.EventHubConnectionString);
+                _client.RetryPolicy = new NoRetry();
+
                 lblStatus.Text = "Event Hub connected";
                 txtParallelism.Text = tbPrallelism.Value.ToString();
             }
@@ -48,12 +60,8 @@ namespace EventHubLoadTest
 
         }
 
-        private async void btnStart_Click(object sender, EventArgs e)
+        private async Task StartSingleFile()
         {
-            btnStop.Enabled = true;
-            btnStart.Enabled = false;
-            btnLoadData.Enabled = false;
-
             _highestRPS = 0;
             _counter = 0;
             _started = true;
@@ -64,7 +72,7 @@ namespace EventHubLoadTest
 
             UpdateLabel(lblTotal, "0");
 
-            while (_started && _runWatch.Elapsed.TotalMinutes <= int.Parse(txtMinutesToRun.Text)) 
+            while (_started && _runWatch.Elapsed.TotalMinutes <= int.Parse(txtMinutesToRun.Text))
             {
                 if (sample == 0)
                 {
@@ -80,12 +88,12 @@ namespace EventHubLoadTest
                     }
                     else
                     {
-                        _sentResults.Add(item.Key,item.Value);
+                        _sentResults.Add(item.Key, item.Value);
                     }
                     sb.Append($"{item.Key}: {_sentResults[item.Key]}\n");
                 }
                 UpdateLabel(lblSentResults, sb.ToString());
-                _counter+= (UInt64) tbPrallelism.Value;
+                _counter += (UInt64)tbPrallelism.Value;
                 UpdateLabel(lblTotal, _counter.ToString());
                 UpdateLabel(lblTimeElapsed, $"{_runWatch.Elapsed.TotalMinutes:N2} minutes");
 
@@ -124,6 +132,93 @@ namespace EventHubLoadTest
             }
         }
 
+        private async void btnStart_Click(object sender, EventArgs e)
+        {
+            btnStop.Enabled = true;
+            btnStart.Enabled = false;
+            btnLoadData.Enabled = false;
+
+            if (rbSingleLocalFile.Checked)
+            {
+                await StartSingleFile();
+            }
+            else
+            {
+                await StartRemoteGzipedFiles();
+            }
+
+        }
+
+        private async Task StartRemoteGzipedFiles()
+        {
+            string fileName;
+            int lines;
+            _highestRPS = 0;
+            _counter = 0;
+            _started = true;
+            _runWatch.Restart();
+            _sentResults = new Dictionary<string, UInt64>();
+            SendFilesResult cycleSentResults;
+
+            UpdateLabel(lblTotal, "0");
+
+            while (_started && _runWatch.Elapsed.TotalMinutes <= int.Parse(txtMinutesToRun.Text))
+            {
+                if (_deCompressedFiles.TryDequeue(out fileName))
+                {
+                    _watch.Restart();
+                    UpdateLabel(lblDecompressedFilesInQueue, _deCompressedFiles.Count().ToString());
+                    cycleSentResults = await SendFileParallelAsync(tbPrallelism.Value, fileName);
+                    StringBuilder sb = new StringBuilder();
+                    foreach (var item in cycleSentResults.Results)
+                    {
+                        if (_sentResults.ContainsKey(item.Key))
+                        {
+                            _sentResults[item.Key] += item.Value;
+                        }
+                        else
+                        {
+                            _sentResults.Add(item.Key, item.Value);
+                        }
+                        sb.Append($"{item.Key}: {_sentResults[item.Key]}\n");
+                    }
+                    UpdateLabel(lblSentResults, sb.ToString());
+                    _counter += (UInt64)cycleSentResults.Lines;
+                    UpdateLabel(lblTotal, _counter.ToString());
+                    UpdateLabel(lblTimeElapsed, $"{_runWatch.Elapsed.TotalMinutes:N2} minutes");
+
+                    double rps = CalculateRPS(_watch, cycleSentResults.Lines);
+                    UpdateLabel(lblRPS, rps.ToString("N2"));
+
+                    if (_highestRPS < rps)
+                    {
+                        _highestRPS = rps;
+                    }
+
+                    double targetRPS = double.Parse(txtTargetRPS.Text);
+                    if (cbAutomatic.Checked)
+                    {
+                        if (rps < targetRPS * .95)
+                        {
+                            tbPrallelism.Value++;
+                            UpdateTextbox(txtParallelism, tbPrallelism.Value.ToString());
+                        }
+                        else if (rps > targetRPS * 1.05)
+                        {
+                            tbPrallelism.Value--;
+                            UpdateTextbox(txtParallelism, tbPrallelism.Value.ToString());
+                        }
+                    }
+
+                    GC.Collect();                    
+                }
+                else
+                {
+                    await Task.Delay(1000);
+                }
+            }
+        }
+
         private double CalculateRPS(Stopwatch watch, int requests)
         {
             return requests / (watch.ElapsedMilliseconds / 1000.0f);
@@ -158,6 +253,47 @@ namespace EventHubLoadTest
             return res;
         }
 
+
+
+        public async Task<SendFilesResult> SendFileParallelAsync(int paralellizm, string fileName)
+        {
+            SendFilesResult results = new SendFilesResult();
+            Dictionary<string, UInt64> res = new Dictionary<string, UInt64>();
+            results.Results = res;
+            string[] data = File.ReadAllLines(fileName);
+            results.Lines = data.Length;
+            int page = data.Length / paralellizm;
+            int lastPageSize = data.Length % paralellizm;
+
+            Task[] tasks = new Task[paralellizm];
+            for (int i = 0; i < paralellizm; i++)
+            {
+                int fromLine = i * page;
+                int toLine = ((i + 1) * page) + ((i + 1) == paralellizm ? lastPageSize : 0);
+
+                tasks[i] = SendAsync(data, fromLine, toLine);
+            }
+
+            // Wait for all tasks to complete. 
+            await Task.Factory.ContinueWhenAll(tasks, (d) =>
+            {
+                // Propagate all exceptions and mark all faulted tasks as observed.
+                Task.WaitAll(d);
+            });
+
+            foreach (var item in tasks
+                .Where(t => t.Exception != null)
+                .GroupBy(t => t.Exception.Message)
+                .Select(group => new { Exception = group.Key, Count = group.Count() }))
+            {
+                res.Add(item.Exception, (UInt64)item.Count);
+            }
+
+            res.Add(TaskStatus.RanToCompletion.ToString(), (UInt64)tasks.Count(t => t.Status == TaskStatus.RanToCompletion));
+
+            return results;
+        }
+
         private void UpdateLabel(Label label, string text)
         {
             label.Invoke(new Action(() => label.Text = text));
@@ -170,30 +306,33 @@ namespace EventHubLoadTest
 
         private async Task SendAsync()
         {
-            EventData data = GenerateData();
-            _client.RetryPolicy = new NoRetry();
-            //_client.RetryPolicy = new RetryExponential(
-            //            TimeSpan.Zero,
-            //            TimeSpan.FromSeconds(30),
-            //            10);
-            // Send single message async
-            await _client.SendAsync(data);
+            await SendAsync(_data);
         }
 
-        private EventData GenerateData()
+        private async Task SendAsync(string[] data, int fromLine = -1, int toLine = -1)
         {
-            // Create the device/temperature metric
-            //MetricEvent info = new MetricEvent() { DeviceId = , Temperature = _random.Next(100) };
-            //JsonSerializer jsonSerializer = new Newtonsoft.Json.JsonSerializer();
+            if (fromLine == -1)
+            {
+                string line = data[_random.Next(_data.Length)];
+                EventData eventData = CreateEventData(line);
+                await _client.SendAsync(eventData);
+            }
+            else
+            {
+                for (int i=fromLine; i<toLine; i++)
+                {
+                    EventData eventData = CreateEventData(data[i]);
+                    await _client.SendAsync(eventData);
+                }
 
-            //EventData data = new EventData(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(info)))
-            EventData data = new EventData(Encoding.UTF8.GetBytes(_data[_random.Next(_data.Length)]));
-            //{
-            //    PartitionKey = _random.Next(5).ToString()
-            //};
+            }
+            
+        }
 
-            // Set user properties if needed
-            data.Properties.Add("Type", "Telemetry_" + DateTime.Now.ToLongTimeString());
+        private EventData CreateEventData(string line)
+        {
+            EventData data = new EventData(Encoding.UTF8.GetBytes(line));
+            //data.Properties.Add("Type", "Telemetry_" + DateTime.Now.ToLongTimeString());
             return data;
         }
 
@@ -225,16 +364,147 @@ namespace EventHubLoadTest
 
         private void txtParallelism_TextChanged(object sender, EventArgs e)
         {
-            int parallelism = int.Parse(txtParallelism.Text);
-            if (parallelism >= tbPrallelism.Maximum)
+            int parallelism;
+
+            if (int.TryParse(txtParallelism.Text, out parallelism))
             {
-                tbPrallelism.Maximum = parallelism + 1;
+                if (parallelism >= tbPrallelism.Maximum)
+                {
+                    tbPrallelism.Maximum = parallelism + 1;
+                }
+                else if (parallelism < 100)
+                {
+                    tbPrallelism.Maximum = 100;
+                }
+                tbPrallelism.Value = parallelism;
             }
-            else if (parallelism < 100)
+        }
+
+        private async void btnLoadDataFromBlob_Click(object sender, EventArgs e)
+        {
+            CloudBlobDirectory dir = GetCloudBlobDirectory();
+
+            btnLoadDataFromBlob.Enabled = false;
+            _downloadStarted = true;
+            btnStopDownload.Enabled = true;
+            rbRemoteGzipedFiles.Checked = true;
+
+            // Loop over items within the container enque them for download and decompression
+            BlobContinuationToken token = null;
+            do
             {
-                tbPrallelism.Maximum = 100;
+                var result = await dir.ListBlobsSegmentedAsync(token);
+                token = result.ContinuationToken;
+                foreach (IListBlobItem item in result.Results)
+                {
+                    if (item.GetType() == typeof(CloudBlockBlob))
+                    {
+                        CloudBlockBlob blob = item as CloudBlockBlob;
+                        string b = blob.Name;
+
+                        b = b.Substring(b.LastIndexOf("/") + 1, b.Length - b.LastIndexOf("/") - 1);
+                        //Trace.WriteLine($"Block blob of length {blob.Properties.Length}: {blob.Uri}");
+                        _compressedFiles.Enqueue(b);
+                        UpdateLabel(lblCompressedFilesInQueue, _compressedFiles.Count().ToString());
+                    }
+                }
+            } while (token != null);
+
+            
+            string blobName, fileName;
+            btnStart.Invoke(new Action(() => { btnStart.Enabled = true; }));
+
+            while (_compressedFiles.Count > 0 && _downloadStarted)
+            {
+                if (_compressedFiles.TryDequeue(out blobName))
+                {
+                    fileName = await ProcessCompressedFile(blobName);
+
+                    _deCompressedFiles.Enqueue(fileName);
+                    UpdateLabel(lblCompressedFilesInQueue, _compressedFiles.Count().ToString());
+                    UpdateLabel(lblDecompressedFilesInQueue, _deCompressedFiles.Count().ToString());
+                    
+                }
             }
-            tbPrallelism.Value = parallelism;
+
+            _downloadStarted = false;
+            btnStopDownload.Invoke(new Action(() => btnStopDownload.Enabled = false));
+            btnLoadDataFromBlob.Invoke(new Action(() => btnLoadDataFromBlob.Enabled = true));
+        }
+
+        private async Task Decompress(FileInfo fileToDecompress)
+        {
+            using (FileStream originalFileStream = fileToDecompress.OpenRead())
+            {
+                string currentFileName = fileToDecompress.FullName;
+                string newFileName = currentFileName.Remove(currentFileName.Length - fileToDecompress.Extension.Length);
+
+                using (FileStream decompressedFileStream = File.Create(newFileName))
+                {
+                    using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
+                    {
+                        await decompressionStream.CopyToAsync(decompressedFileStream);
+                        Trace.WriteLine("Decompressed: {0}", fileToDecompress.Name);
+                    }
+                }
+            }
+        }
+
+        private async Task<string> ProcessCompressedFile(string blobName)
+        {
+            string compressedFileName = Path.Combine(Properties.Settings.Default.CachePath, blobName);
+            string decompressedFileName = compressedFileName.Remove(compressedFileName.Length - ".gz".Length);
+
+            // check if file already exists in local disk (aleady decompressed) then take from cache
+            if (File.Exists(decompressedFileName))
+            {
+                // return file name
+                return await Task.FromResult<string>(decompressedFileName);
+            }
+
+            if (!File.Exists(compressedFileName))
+            {
+                // download blob
+                if (!Directory.Exists(Properties.Settings.Default.CachePath))
+                {
+                    Directory.CreateDirectory(Properties.Settings.Default.CachePath);
+                }
+
+                CloudBlobDirectory dir = GetCloudBlobDirectory();
+                CloudBlockBlob blob = dir.GetBlockBlobReference(blobName);
+                using (FileStream fs = File.Create(compressedFileName))
+                {
+                    await blob.DownloadToStreamAsync(fs);
+                    fs.Close();
+                }
+            }
+
+            // decompress
+            FileInfo gzippedFile = new FileInfo(compressedFileName);
+            await Decompress(gzippedFile);
+
+            // return file name
+            return await Task.FromResult<string>(decompressedFileName);
+        }
+
+        private CloudBlobDirectory GetCloudBlobDirectory()
+        {
+            // Parse the connection string and return a reference to the storage account.
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Properties.Settings.Default.StorageConnectionString);
+
+            // Create the blob client.
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            // Retrieve a reference to a container.
+            CloudBlobContainer container = blobClient.GetContainerReference(Properties.Settings.Default.StorageContainter);
+
+            return container.GetDirectoryReference(Properties.Settings.Default.StorageDirectory);
+        }
+
+        private void btnStopDownload_Click(object sender, EventArgs e)
+        {
+            _downloadStarted = false;
+            btnStopDownload.Enabled = false;
         }
     }
 }
