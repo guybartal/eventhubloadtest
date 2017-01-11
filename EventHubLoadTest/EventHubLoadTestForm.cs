@@ -261,35 +261,72 @@ namespace EventHubLoadTest
             Dictionary<string, UInt64> res = new Dictionary<string, UInt64>();
             results.Results = res;
             string[] data = File.ReadAllLines(fileName);
-            results.Lines = data.Length;
+            results.Lines = 0;
             int page = data.Length / paralellizm;
-            int lastPageSize = data.Length % paralellizm;
-
-            Task[] tasks = new Task[paralellizm];
-            for (int i = 0; i < paralellizm; i++)
+            int cycles = 1;
+            int lastPageSize;
+            int maxBatchLimitPerTheard;
+            int.TryParse(txtBatchLimitPerThread.Text, out maxBatchLimitPerTheard);
+            if (page > maxBatchLimitPerTheard)
             {
-                int fromLine = i * page;
-                int toLine = ((i + 1) * page) + ((i + 1) == paralellizm ? lastPageSize : 0);
-
-                tasks[i] = SendAsync(data, fromLine, toLine);
+                page = maxBatchLimitPerTheard;
+                cycles = data.Length / (paralellizm * page);
+                lastPageSize = data.Length % (paralellizm * page);
+            }
+            else
+            {
+                lastPageSize = data.Length % paralellizm;
             }
 
-            // Wait for all tasks to complete. 
-            await Task.Factory.ContinueWhenAll(tasks, (d) =>
+            for (int c = 0; c < cycles && _started; c++)
             {
+                UpdateLabel(lblBatchNumberCycle, c.ToString());
+
+                Task[] tasks = new Task[paralellizm];
+                for (int i = 0; i < paralellizm && _started; i++)
+                {
+                    int fromLine = (c*paralellizm +i ) *  page;
+                    int toLine = fromLine + page;
+
+                    if (fromLine >= data.Length)
+                    {
+                        break;
+                    }
+
+                    if (toLine > data.Length)
+                    {
+                        toLine = data.Length;
+                    }
+
+                    tasks[i] = SendBatchAsync(data, fromLine, toLine);
+                }
+
+                // Wait for all tasks to complete. 
+                await Task.Factory.ContinueWhenAll(tasks, (d) =>
+                {
                 // Propagate all exceptions and mark all faulted tasks as observed.
                 Task.WaitAll(d);
-            });
+                });
 
-            foreach (var item in tasks
-                .Where(t => t.Exception != null)
-                .GroupBy(t => t.Exception.Message)
-                .Select(group => new { Exception = group.Key, Count = group.Count() }))
-            {
-                res.Add(item.Exception, (UInt64)item.Count);
+                foreach (var item in tasks
+                    .Where(t => t.Exception != null)
+                    .GroupBy(t => t.Exception.Message)
+                    .Select(group => new { Exception = group.Key, Count = group.Count() }))
+                {
+                    res.Add(item.Exception, (UInt64)item.Count);
+                }
+
+                if (res.ContainsKey(TaskStatus.RanToCompletion.ToString()))
+                {
+                    res[TaskStatus.RanToCompletion.ToString()] += (UInt64)tasks.Count(t => t.Status == TaskStatus.RanToCompletion);
+                }
+                else
+                {
+                    res.Add(TaskStatus.RanToCompletion.ToString(), (UInt64)tasks.Count(t => t.Status == TaskStatus.RanToCompletion));
+                }
+
+                results.Lines += tasks.Count(t => t.Status == TaskStatus.RanToCompletion) * page;
             }
-
-            res.Add(TaskStatus.RanToCompletion.ToString(), (UInt64)tasks.Count(t => t.Status == TaskStatus.RanToCompletion));
 
             return results;
         }
@@ -309,24 +346,23 @@ namespace EventHubLoadTest
             await SendAsync(_data);
         }
 
-        private async Task SendAsync(string[] data, int fromLine = -1, int toLine = -1)
-        {
-            if (fromLine == -1)
-            {
-                string line = data[_random.Next(_data.Length)];
-                EventData eventData = CreateEventData(line);
-                await _client.SendAsync(eventData);
-            }
-            else
-            {
-                for (int i=fromLine; i<toLine; i++)
-                {
-                    EventData eventData = CreateEventData(data[i]);
-                    await _client.SendAsync(eventData);
-                }
 
+        private async Task SendBatchAsync(string[] data, int fromLine, int toLine)
+        {
+            List<EventData> evenDataList = new List<EventData>();
+            for (int i = fromLine; i < toLine; i++)
+            {
+                evenDataList.Add(CreateEventData(data[i]));
             }
-            
+
+            await _client.SendBatchAsync(evenDataList);
+        }
+
+        private async Task SendAsync(string[] data)
+        {
+            string line = data[_random.Next(_data.Length)];
+            EventData eventData = CreateEventData(line);
+            await _client.SendAsync(eventData);
         }
 
         private EventData CreateEventData(string line)

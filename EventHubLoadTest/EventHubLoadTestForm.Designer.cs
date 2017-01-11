@@ -34,6 +34,7 @@
             this.btnStart = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.lblCurrentTask = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblTotal = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.tbPrallelism = new System.Windows.Forms.TrackBar();
@@ -60,7 +61,10 @@
             this.label8 = new System.Windows.Forms.Label();
             this.lblCompressedFilesInQueue = new System.Windows.Forms.Label();
             this.lblDecompressedFilesInQueue = new System.Windows.Forms.Label();
-            this.lblCurrentTask = new System.Windows.Forms.ToolStripStatusLabel();
+            this.label9 = new System.Windows.Forms.Label();
+            this.txtBatchLimitPerThread = new System.Windows.Forms.MaskedTextBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.lblBatchNumberCycle = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbPrallelism)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -70,7 +74,7 @@
             // lblRPS
             // 
             this.lblRPS.AutoSize = true;
-            this.lblRPS.Location = new System.Drawing.Point(137, 0);
+            this.lblRPS.Location = new System.Drawing.Point(136, 0);
             this.lblRPS.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblRPS.Name = "lblRPS";
             this.lblRPS.Size = new System.Drawing.Size(0, 20);
@@ -89,7 +93,7 @@
             // btnStop
             // 
             this.btnStop.Enabled = false;
-            this.btnStop.Location = new System.Drawing.Point(159, 177);
+            this.btnStop.Location = new System.Drawing.Point(159, 244);
             this.btnStop.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(112, 35);
@@ -101,7 +105,7 @@
             // btnStart
             // 
             this.btnStart.Enabled = false;
-            this.btnStart.Location = new System.Drawing.Point(38, 177);
+            this.btnStart.Location = new System.Drawing.Point(38, 244);
             this.btnStart.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(112, 35);
@@ -115,7 +119,7 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblStatus,
             this.lblCurrentTask});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 373);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 545);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(2, 0, 21, 0);
             this.statusStrip1.Size = new System.Drawing.Size(1233, 22);
@@ -127,10 +131,15 @@
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(0, 17);
             // 
+            // lblCurrentTask
+            // 
+            this.lblCurrentTask.Name = "lblCurrentTask";
+            this.lblCurrentTask.Size = new System.Drawing.Size(0, 17);
+            // 
             // lblTotal
             // 
             this.lblTotal.AutoSize = true;
-            this.lblTotal.Location = new System.Drawing.Point(137, 29);
+            this.lblTotal.Location = new System.Drawing.Point(136, 53);
             this.lblTotal.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblTotal.Name = "lblTotal";
             this.lblTotal.Size = new System.Drawing.Size(0, 20);
@@ -139,16 +148,16 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(4, 29);
+            this.label3.Location = new System.Drawing.Point(4, 53);
             this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(125, 20);
+            this.label3.Size = new System.Drawing.Size(86, 40);
             this.label3.TabIndex = 8;
             this.label3.Text = "Total messages:";
             // 
             // tbPrallelism
             // 
-            this.tbPrallelism.Location = new System.Drawing.Point(249, 18);
+            this.tbPrallelism.Location = new System.Drawing.Point(314, 18);
             this.tbPrallelism.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tbPrallelism.Maximum = 100;
             this.tbPrallelism.Minimum = 1;
@@ -171,7 +180,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(4, 58);
+            this.label5.Location = new System.Drawing.Point(4, 106);
             this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(107, 20);
@@ -191,7 +200,7 @@
             // lblTimeElapsed
             // 
             this.lblTimeElapsed.AutoSize = true;
-            this.lblTimeElapsed.Location = new System.Drawing.Point(137, 58);
+            this.lblTimeElapsed.Location = new System.Drawing.Point(136, 106);
             this.lblTimeElapsed.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblTimeElapsed.Name = "lblTimeElapsed";
             this.lblTimeElapsed.Size = new System.Drawing.Size(0, 20);
@@ -199,7 +208,7 @@
             // 
             // txtMinutesToRun
             // 
-            this.txtMinutesToRun.Location = new System.Drawing.Point(159, 78);
+            this.txtMinutesToRun.Location = new System.Drawing.Point(212, 78);
             this.txtMinutesToRun.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtMinutesToRun.Mask = "000000000";
             this.txtMinutesToRun.Name = "txtMinutesToRun";
@@ -211,7 +220,7 @@
             // 
             // txtTargetRPS
             // 
-            this.txtTargetRPS.Location = new System.Drawing.Point(160, 129);
+            this.txtTargetRPS.Location = new System.Drawing.Point(213, 129);
             this.txtTargetRPS.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtTargetRPS.Mask = "000000000";
             this.txtTargetRPS.Name = "txtTargetRPS";
@@ -234,7 +243,7 @@
             // lblSentResults
             // 
             this.lblSentResults.AutoSize = true;
-            this.lblSentResults.Location = new System.Drawing.Point(609, 58);
+            this.lblSentResults.Location = new System.Drawing.Point(608, 106);
             this.lblSentResults.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblSentResults.Name = "lblSentResults";
             this.lblSentResults.Size = new System.Drawing.Size(0, 20);
@@ -242,7 +251,7 @@
             // 
             // btnLoadData
             // 
-            this.btnLoadData.Location = new System.Drawing.Point(280, 177);
+            this.btnLoadData.Location = new System.Drawing.Point(280, 244);
             this.btnLoadData.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnLoadData.Name = "btnLoadData";
             this.btnLoadData.Size = new System.Drawing.Size(112, 35);
@@ -253,7 +262,7 @@
             // 
             // txtParallelism
             // 
-            this.txtParallelism.Location = new System.Drawing.Point(158, 18);
+            this.txtParallelism.Location = new System.Drawing.Point(211, 18);
             this.txtParallelism.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtParallelism.Mask = "00000";
             this.txtParallelism.Name = "txtParallelism";
@@ -266,7 +275,7 @@
             // cbAutomatic
             // 
             this.cbAutomatic.AutoSize = true;
-            this.cbAutomatic.Location = new System.Drawing.Point(762, 22);
+            this.cbAutomatic.Location = new System.Drawing.Point(827, 22);
             this.cbAutomatic.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cbAutomatic.Name = "cbAutomatic";
             this.cbAutomatic.Size = new System.Drawing.Size(98, 24);
@@ -276,7 +285,7 @@
             // 
             // btnLoadDataFromBlob
             // 
-            this.btnLoadDataFromBlob.Location = new System.Drawing.Point(402, 177);
+            this.btnLoadDataFromBlob.Location = new System.Drawing.Point(402, 244);
             this.btnLoadDataFromBlob.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnLoadDataFromBlob.Name = "btnLoadDataFromBlob";
             this.btnLoadDataFromBlob.Size = new System.Drawing.Size(183, 35);
@@ -289,7 +298,7 @@
             // 
             this.groupBox1.Controls.Add(this.rbRemoteGzipedFiles);
             this.groupBox1.Controls.Add(this.rbSingleLocalFile);
-            this.groupBox1.Location = new System.Drawing.Point(280, 65);
+            this.groupBox1.Location = new System.Drawing.Point(345, 65);
             this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -325,7 +334,7 @@
             // btnStopDownload
             // 
             this.btnStopDownload.Enabled = false;
-            this.btnStopDownload.Location = new System.Drawing.Point(593, 177);
+            this.btnStopDownload.Location = new System.Drawing.Point(593, 244);
             this.btnStopDownload.Name = "btnStopDownload";
             this.btnStopDownload.Size = new System.Drawing.Size(143, 35);
             this.btnStopDownload.TabIndex = 28;
@@ -336,7 +345,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(381, 0);
+            this.label6.Location = new System.Drawing.Point(380, 0);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(200, 20);
             this.label6.TabIndex = 29;
@@ -348,7 +357,7 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 35.18518F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 64.81481F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 227F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 504F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 505F));
             this.tableLayoutPanel1.Controls.Add(this.label1, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.label6, 2, 0);
             this.tableLayoutPanel1.Controls.Add(this.lblRPS, 1, 0);
@@ -361,19 +370,22 @@
             this.tableLayoutPanel1.Controls.Add(this.label8, 2, 1);
             this.tableLayoutPanel1.Controls.Add(this.lblCompressedFilesInQueue, 3, 0);
             this.tableLayoutPanel1.Controls.Add(this.lblDecompressedFilesInQueue, 3, 1);
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(38, 234);
+            this.tableLayoutPanel1.Controls.Add(this.label10, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.lblBatchNumberCycle, 1, 3);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(38, 301);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 3;
+            this.tableLayoutPanel1.RowCount = 4;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 78F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1110, 136);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 66F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1110, 204);
             this.tableLayoutPanel1.TabIndex = 30;
             // 
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(382, 58);
+            this.label7.Location = new System.Drawing.Point(381, 106);
             this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(102, 20);
@@ -383,7 +395,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(381, 29);
+            this.label8.Location = new System.Drawing.Point(380, 53);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(218, 20);
             this.label8.TabIndex = 29;
@@ -392,7 +404,7 @@
             // lblCompressedFilesInQueue
             // 
             this.lblCompressedFilesInQueue.AutoSize = true;
-            this.lblCompressedFilesInQueue.Location = new System.Drawing.Point(608, 0);
+            this.lblCompressedFilesInQueue.Location = new System.Drawing.Point(607, 0);
             this.lblCompressedFilesInQueue.Name = "lblCompressedFilesInQueue";
             this.lblCompressedFilesInQueue.Size = new System.Drawing.Size(0, 20);
             this.lblCompressedFilesInQueue.TabIndex = 30;
@@ -400,21 +412,55 @@
             // lblDecompressedFilesInQueue
             // 
             this.lblDecompressedFilesInQueue.AutoSize = true;
-            this.lblDecompressedFilesInQueue.Location = new System.Drawing.Point(608, 29);
+            this.lblDecompressedFilesInQueue.Location = new System.Drawing.Point(607, 53);
             this.lblDecompressedFilesInQueue.Name = "lblDecompressedFilesInQueue";
             this.lblDecompressedFilesInQueue.Size = new System.Drawing.Size(0, 20);
             this.lblDecompressedFilesInQueue.TabIndex = 30;
             // 
-            // lblCurrentTask
+            // label9
             // 
-            this.lblCurrentTask.Name = "lblCurrentTask";
-            this.lblCurrentTask.Size = new System.Drawing.Size(0, 17);
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(37, 191);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(173, 20);
+            this.label9.TabIndex = 31;
+            this.label9.Text = "Batch limit (per thread):";
+            // 
+            // txtBatchLimitPerThread
+            // 
+            this.txtBatchLimitPerThread.Location = new System.Drawing.Point(213, 191);
+            this.txtBatchLimitPerThread.Mask = "00000";
+            this.txtBatchLimitPerThread.Name = "txtBatchLimitPerThread";
+            this.txtBatchLimitPerThread.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.txtBatchLimitPerThread.Size = new System.Drawing.Size(60, 26);
+            this.txtBatchLimitPerThread.TabIndex = 32;
+            this.txtBatchLimitPerThread.Text = "100";
+            this.txtBatchLimitPerThread.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(3, 138);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(94, 40);
+            this.label10.TabIndex = 31;
+            this.label10.Text = "Batch cycle number:";
+            // 
+            // lblBatchNumberCycle
+            // 
+            this.lblBatchNumberCycle.AutoSize = true;
+            this.lblBatchNumberCycle.Location = new System.Drawing.Point(135, 138);
+            this.lblBatchNumberCycle.Name = "lblBatchNumberCycle";
+            this.lblBatchNumberCycle.Size = new System.Drawing.Size(0, 20);
+            this.lblBatchNumberCycle.TabIndex = 32;
             // 
             // EventHubLoadTestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1233, 395);
+            this.ClientSize = new System.Drawing.Size(1233, 567);
+            this.Controls.Add(this.txtBatchLimitPerThread);
+            this.Controls.Add(this.label9);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.btnStopDownload);
             this.Controls.Add(this.groupBox1);
@@ -482,5 +528,9 @@
         private System.Windows.Forms.Label lblCompressedFilesInQueue;
         private System.Windows.Forms.Label lblDecompressedFilesInQueue;
         private System.Windows.Forms.ToolStripStatusLabel lblCurrentTask;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.MaskedTextBox txtBatchLimitPerThread;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Label lblBatchNumberCycle;
     }
 }
