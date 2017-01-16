@@ -147,6 +147,9 @@ namespace EventHubLoadTest
                 await StartRemoteGzipedFiles();
             }
 
+            btnStop.Enabled = false;
+            btnStart.Enabled = true;
+
         }
 
         private async Task StartRemoteGzipedFiles()
@@ -273,17 +276,31 @@ namespace EventHubLoadTest
                 cycles = data.Length / (paralellizm * page);
                 lastPageSize = data.Length % (paralellizm * page);
             }
-            else
+            else if (page > 0)
             {
                 lastPageSize = data.Length % paralellizm;
+            }
+            else
+            {
+                page = 1; // minimum page per thread
             }
 
             for (int c = 0; c < cycles && _started; c++)
             {
                 UpdateLabel(lblBatchNumberCycle, c.ToString());
 
-                Task[] tasks = new Task[paralellizm];
-                for (int i = 0; i < paralellizm && _started; i++)
+                int tasksNeeded = paralellizm;
+                if (c==cycles -1) // last cycle
+                {
+                    tasksNeeded = data.Length % (paralellizm * page);
+                    if (tasksNeeded == 0)
+                    {
+                        tasksNeeded = paralellizm;
+                    }
+                }
+
+                Task[] tasks = new Task[tasksNeeded];
+                for (int i = 0; i < tasksNeeded && _started; i++)
                 {
                     int fromLine = (c*paralellizm +i ) *  page;
                     int toLine = fromLine + page;

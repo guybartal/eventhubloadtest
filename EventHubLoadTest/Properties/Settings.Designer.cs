@@ -26,7 +26,7 @@ namespace EventHubLoadTest.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Endpoint=sb://guyehloadtesteu.servicebus.windows.net/;SharedAccessKeyName=send;Sh" +
-            "aredAccessKey=7GMxwmGfhZBNoPduZA8/kLuEnBEwge1PtsD0Sr/vKvk=;EntityPath=loadtest")]
+            "aredAccessKey=BwmCpdUDinQa0tNKaE17J8spih5Pro/25vM3pvN0lEQ=;EntityPath=loadtest")]
         public string EventHubConnectionString {
             get {
                 return ((string)(this["EventHubConnectionString"]));
