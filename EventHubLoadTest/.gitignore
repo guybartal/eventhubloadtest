@@ -1,2 +1,1 @@
-﻿App.Debug.config
-App.Release.config
+﻿App.*.config
