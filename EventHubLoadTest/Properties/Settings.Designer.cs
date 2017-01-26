@@ -25,18 +25,8 @@ namespace EventHubLoadTest.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Endpoint=sb://guyehloadtesteu.servicebus.windows.net/;SharedAccessKeyName=send;Sh" +
-            "aredAccessKey=BwmCpdUDinQa0tNKaE17J8spih5Pro/25vM3pvN0lEQ=;EntityPath=loadtest")]
-        public string EventHubConnectionString {
-            get {
-                return ((string)(this["EventHubConnectionString"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("DefaultEndpointsProtocol=https;AccountName=pocdwsa;AccountKey=3AgbxAfR5NIPqlVp6fF" +
-            "tqGjQQQcKXfBQknSt2MXfr/yGfqvWjasJcc96oLMtmBhXCalcTq5b25Ay1m2m6F2WuQ==")]
+        [global::System.Configuration.DefaultSettingValueAttribute("DefaultEndpointsProtocol=https;AccountName=[account name];AccountKey=[account key" +
+            "]")]
         public string StorageConnectionString {
             get {
                 return ((string)(this["StorageConnectionString"]));
@@ -54,7 +44,7 @@ namespace EventHubLoadTest.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("dwjsononeday")]
+        [global::System.Configuration.DefaultSettingValueAttribute("[storage container name]")]
         public string StorageContainter {
             get {
                 return ((string)(this["StorageContainter"]));
@@ -63,10 +53,20 @@ namespace EventHubLoadTest.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2017-01/2017-01-04")]
+        [global::System.Configuration.DefaultSettingValueAttribute("[storage directory]")]
         public string StorageDirectory {
             get {
                 return ((string)(this["StorageDirectory"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Endpoint=sb://[service bus account name].servicebus.windows.net/;SharedAccessKeyN" +
+            "ame=send;SharedAccessKey=[shared access key];EntityPath=[event hub name]")]
+        public string EventHubConnectionString {
+            get {
+                return ((string)(this["EventHubConnectionString"]));
             }
         }
     }
